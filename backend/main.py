@@ -5,7 +5,7 @@ from routes.aineva import router
 
 app = FastAPI(title="AlpineSnowMap API")
 
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+allowed_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "*").split(",")]
 
 app.add_middleware(
     CORSMiddleware,

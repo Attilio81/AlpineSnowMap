@@ -11,6 +11,8 @@ async def get_bulletin(province: str):
         raise HTTPException(status_code=400, detail="Province must start with IT-")
     try:
         data = await fetch_bulletin(province)
+        if not isinstance(data, dict):
+            raise HTTPException(status_code=502, detail="AINEVA returned invalid response format")
         return {"available": True, **data}
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
