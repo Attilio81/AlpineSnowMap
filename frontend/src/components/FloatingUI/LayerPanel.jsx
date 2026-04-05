@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useApp } from '../../context/AppContext.jsx'
 import { isAinevaActive } from '../../utils/aineva.js'
 
@@ -33,25 +34,16 @@ function LayerToggle({ label, checked, onChange, disabled, disabledTitle }) {
 
 export default function LayerPanel() {
   const { state, dispatch } = useApp()
+  const [open, setOpen] = useState(false)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
   function toggle(layer) {
     dispatch({ type: 'TOGGLE_LAYER', payload: layer })
   }
 
-  return (
-    <div className="panel" style={{
-      position: 'absolute',
-      top: 14,
-      right: 54,
-      padding: '12px 14px',
-      zIndex: 10,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 10,
-      minWidth: 160,
-    }}>
+  const panelContent = (
+    <>
       <span className="label">Layer</span>
-
       <LayerToggle
         label="❄️ Neve MODIS"
         checked={state.layers.snow}
@@ -69,12 +61,74 @@ export default function LayerPanel() {
         checked={state.layers.satellite}
         onChange={() => toggle('satellite')}
       />
-
       {!active && (
         <p style={{ fontSize: 10, color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4 }}>
           AINEVA attivo: 1 dic – 5 mag
         </p>
       )}
+    </>
+  )
+
+  if (isMobile) {
+    return (
+      <>
+        <button
+          onClick={() => setOpen(o => !o)}
+          title="Gestisci layer"
+          style={{
+            position: 'absolute',
+            bottom: 80,
+            right: 14,
+            zIndex: 10,
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
+            background: 'var(--bg-panel)',
+            border: '1px solid var(--border-panel)',
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
+            fontSize: 18,
+            cursor: 'pointer',
+            color: 'var(--text-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          🗺
+        </button>
+        {open && (
+          <div className="panel" style={{
+            position: 'absolute',
+            bottom: 132,
+            right: 14,
+            zIndex: 20,
+            padding: '12px 14px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10,
+            minWidth: 160,
+          }}>
+            {panelContent}
+          </div>
+        )}
+      </>
+    )
+  }
+
+  return (
+    <div className="panel" style={{
+      position: 'absolute',
+      top: 14,
+      right: 54,
+      padding: '12px 14px',
+      zIndex: 10,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10,
+      minWidth: 160,
+    }}>
+      {panelContent}
     </div>
   )
 }
