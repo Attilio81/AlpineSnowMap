@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { AppProvider, useApp } from './context/AppContext.jsx'
 import { useGeolocation } from './hooks/useGeolocation.js'
+import { useAineva } from './hooks/useAineva.js'
 import MapView from './components/MapView.jsx'
 import SnowLayer from './components/SnowLayer.jsx'
+import AinevaLayer from './components/AinevaLayer.jsx'
 
 function AppInner() {
   const { state } = useApp()
   const mapRef = useRef(null)
   const [mapReady, setMapReady] = useState(false)
   useGeolocation()
+  useAineva()
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', state.theme)
@@ -20,9 +23,7 @@ function AppInner() {
       {mapReady && (
         <>
           <SnowLayer mapRef={mapRef} />
-          <div style={{ position: 'absolute', top: 10, left: 10, color: 'white', zIndex: 10 }}>
-            Map + Snow ✓
-          </div>
+          <AinevaLayer mapRef={mapRef} />
         </>
       )}
     </div>
