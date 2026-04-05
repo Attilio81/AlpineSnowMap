@@ -1,0 +1,44 @@
+{
+  "available": true,
+  "bulletins": [
+    {
+      "bulletinID": "IT-23-2026-04-05",
+      "validTime": {
+        "startTime": "2026-04-05T00:00:00+01:00",
+        "endTime": "2026-04-05T23:59:59+01:00"
+      },
+      "regions": [
+        { "regionID": "IT-23-01", "name": "Monte Rosa e Cervino" },
+        { "regionID": "IT-23-02", "name": "Gran Paradiso" }
+      ],
+      "dangerRatings": [
+        {
+          "mainValue": 3,
+          "elevation": { "lowerBound": "2000" },
+          "validTimePeriod": "all_day"
+        },
+        {
+          "mainValue": 2,
+          "elevation": { "upperBound": "2000" },
+          "validTimePeriod": "all_day"
+        }
+      ],
+      "avalancheProblems": [
+        {
+          "problemType": "new_snow",
+          "elevation": { "lowerBound": "2000" },
+          "aspects": ["N", "NE", "NW", "E"],
+          "validTimePeriod": "all_day"
+        },
+        {
+          "problemType": "wind_slab",
+          "elevation": { "lowerBound": "2500" },
+          "aspects": ["N", "NE", "E"],
+          "validTimePeriod": "all_day"
+        }
+      ],
+      "highlights": "Pericolo marcato oltre i 2000m per neve fresca e lastroni da vento",
+      "comment": "Nelle ultime 24h caduti 20-30cm di neve fresca. Prestare attenzione ai pendii ripidi esposti a N, NE, E e NW oltre i 2000m. Lastroni da vento pericolosi oltre i 2500m."
+    }
+  ]
+}
