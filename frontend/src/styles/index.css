@@ -1,0 +1,62 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-ui: 'Inter', sans-serif;
+  --accent: #7ECFFF;
+  --danger-1: #CCFF66;
+  --danger-2: #FFFF00;
+  --danger-3: #FF9900;
+  --danger-4: #FF0000;
+  --danger-5: #111111;
+}
+
+[data-theme="dark"], :root {
+  --bg-panel: rgba(10, 15, 25, 0.78);
+  --bg-panel-hover: rgba(15, 22, 38, 0.88);
+  --border-panel: rgba(126, 207, 255, 0.18);
+  --text-primary: #E0E8FF;
+  --text-secondary: #7A8CA8;
+  --text-accent: #7ECFFF;
+  --bg-body: #0d1117;
+}
+
+[data-theme="light"] {
+  --bg-panel: rgba(245, 248, 255, 0.88);
+  --bg-panel-hover: rgba(235, 240, 255, 0.95);
+  --border-panel: rgba(0, 100, 180, 0.18);
+  --text-primary: #1A2030;
+  --text-secondary: #556688;
+  --text-accent: #0066CC;
+  --bg-body: #e8edf5;
+}
+
+html, body, #root { height: 100%; width: 100%; overflow: hidden; }
+body { font-family: var(--font-ui); background: var(--bg-body); color: var(--text-primary); }
+
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-panel);
+  border-radius: 12px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-accent);
+}
+
+button.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+button.icon-btn:hover { color: var(--text-primary); background: var(--bg-panel-hover); }
