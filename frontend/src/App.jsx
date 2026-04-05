@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AppProvider, useApp } from './context/AppContext.jsx'
 import { useGeolocation } from './hooks/useGeolocation.js'
 import MapView from './components/MapView.jsx'
+import SnowLayer from './components/SnowLayer.jsx'
 
 function AppInner() {
   const { state } = useApp()
@@ -17,9 +18,12 @@ function AppInner() {
     <div style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
       <MapView mapRef={mapRef} onMapReady={() => setMapReady(true)} />
       {mapReady && (
-        <div style={{ position: 'absolute', top: 10, left: 10, color: 'white', zIndex: 10 }}>
-          Map ready ✓ — {state.selectedProvince}
-        </div>
+        <>
+          <SnowLayer mapRef={mapRef} />
+          <div style={{ position: 'absolute', top: 10, left: 10, color: 'white', zIndex: 10 }}>
+            Map + Snow ✓
+          </div>
+        </>
       )}
     </div>
   )
