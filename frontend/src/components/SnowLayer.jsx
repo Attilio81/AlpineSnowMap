@@ -27,13 +27,15 @@ export default function SnowLayer({ mapRef }) {
       layout: { visibility: state.layers.snow ? 'visible' : 'none' },
     })
 
-    map.on('error', e => {
+    const handleError = e => {
       if (e.sourceId === SOURCE_ID) {
         dispatch({ type: 'SET_TOAST', payload: { message: 'Copertura nuvolosa — prova una data precedente', type: 'info' } })
       }
-    })
+    }
+    map.on('error', handleError)
 
     return () => {
+      map.off('error', handleError)
       if (map.getLayer(LAYER_ID)) map.removeLayer(LAYER_ID)
       if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID)
     }

@@ -41,12 +41,17 @@ export default function AinevaLayer({ mapRef }) {
     })
 
     const handleClick = () => dispatch({ type: 'SET_SHEET_OPEN', payload: true })
+    const handleMouseEnter = () => { map.getCanvas().style.cursor = 'pointer' }
+    const handleMouseLeave = () => { map.getCanvas().style.cursor = '' }
     map.on('click', FILL_ID, handleClick)
-    map.on('mouseenter', FILL_ID, () => { map.getCanvas().style.cursor = 'pointer' })
-    map.on('mouseleave', FILL_ID, () => { map.getCanvas().style.cursor = '' })
+    map.on('mouseenter', FILL_ID, handleMouseEnter)
+    map.on('mouseleave', FILL_ID, handleMouseLeave)
 
     return () => {
       map.off('click', FILL_ID, handleClick)
+      map.off('mouseenter', FILL_ID, handleMouseEnter)
+      map.off('mouseleave', FILL_ID, handleMouseLeave)
+      map.getCanvas().style.cursor = ''
       if (map.getLayer(LINE_ID)) map.removeLayer(LINE_ID)
       if (map.getLayer(FILL_ID)) map.removeLayer(FILL_ID)
       if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID)
