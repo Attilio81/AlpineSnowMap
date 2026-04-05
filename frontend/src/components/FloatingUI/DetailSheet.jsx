@@ -22,7 +22,7 @@ export default function DetailSheet() {
   return (
     <>
       <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 20 }} />
-      <div className="panel" style={{
+      <div className="panel" onClick={e => e.stopPropagation()} style={{
         position: 'absolute',
         bottom: 74,
         left: 14,
@@ -39,7 +39,7 @@ export default function DetailSheet() {
               {zone?.name}
             </div>
           </div>
-          <button className="icon-btn" onClick={close} style={{ fontSize: 18 }}>✕</button>
+          <button className="icon-btn" onClick={close} style={{ fontSize: 18 }} title="Chiudi bollettino">✕</button>
         </div>
 
         <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
@@ -63,7 +63,7 @@ export default function DetailSheet() {
           <div style={{ marginBottom: 14 }}>
             <div className="label" style={{ marginBottom: 8 }}>Problemi valanghivi</div>
             {b.problems.map((p, i) => (
-              <div key={i} style={{ background: 'var(--bg-panel-hover)', borderRadius: 8, padding: '8px 12px', marginBottom: 6, fontSize: 13 }}>
+              <div key={`${p.problemType}-${i}`} style={{ background: 'var(--bg-panel-hover)', borderRadius: 8, padding: '8px 12px', marginBottom: 6, fontSize: 13 }}>
                 <span style={{ fontWeight: 500, color: 'var(--text-accent)' }}>
                   {PROBLEM_LABELS[p.problemType] ?? p.problemType}
                 </span>

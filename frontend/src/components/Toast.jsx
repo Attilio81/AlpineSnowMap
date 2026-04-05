@@ -9,7 +9,7 @@ export default function Toast() {
     if (!toast) return
     const t = setTimeout(() => dispatch({ type: 'SET_TOAST', payload: null }), 4000)
     return () => clearTimeout(t)
-  }, [toast])
+  }, [toast, dispatch])
 
   if (!toast) return null
 
