@@ -4,6 +4,7 @@
   --font-display: 'Barlow Condensed', sans-serif;
   --font-ui: 'Inter', sans-serif;
   --accent: #7ECFFF;
+  /* Avalanche danger colors — used by AinevaLayer + InfoBar (Tasks 8, 11) */
   --danger-1: #CCFF66;
   --danger-2: #FFFF00;
   --danger-3: #FF9900;
