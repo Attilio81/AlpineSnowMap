@@ -3,7 +3,7 @@ export const DANGER_COLORS = {
   2: '#FFFF00',
   3: '#FF9900',
   4: '#FF0000',
-  5: '#111111',
+  5: '#000000',
 }
 
 export const DANGER_LABELS = {
@@ -36,7 +36,7 @@ export function parseBulletin(data) {
   const b = data.bulletins[0]
 
   // Highest danger rating across all elevations
-  const maxDanger = Math.max(...b.dangerRatings.map(r => r.mainValue))
+  const maxDanger = b.dangerRatings?.length ? Math.max(...b.dangerRatings.map(r => r.mainValue)) : 0
 
   // Above/below treeline ratings
   const above = b.dangerRatings.find(r => r.elevation?.lowerBound) ?? null
