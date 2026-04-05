@@ -7,6 +7,8 @@ import SnowLayer from './components/SnowLayer.jsx'
 import AinevaLayer from './components/AinevaLayer.jsx'
 import TopBar from './components/FloatingUI/TopBar.jsx'
 import LayerPanel from './components/FloatingUI/LayerPanel.jsx'
+import InfoBar from './components/FloatingUI/InfoBar.jsx'
+import DetailSheet from './components/FloatingUI/DetailSheet.jsx'
 
 function AppInner() {
   const { state } = useApp()
@@ -28,6 +30,8 @@ function AppInner() {
           <AinevaLayer mapRef={mapRef} />
           <TopBar />
           <LayerPanel />
+          <InfoBar />
+          <DetailSheet />
         </>
       )}
     </div>
