@@ -1,0 +1,77 @@
+<h2>Layout consigliato: <span style="color:#7ecfff;">B — Pannelli flottanti</span></h2>
+<p class="subtitle">La mappa è l'interfaccia — tutto il resto è sovrapposto con vetro ghiacciato</p>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">AlpineSnowMap — Desktop</div>
+    <div class="mockup-body" style="background:linear-gradient(135deg,#1a2a1a 0%,#2d4a3e 40%,#1a3050 100%);min-height:280px;position:relative;overflow:hidden;border-radius:0 0 8px 8px;">
+
+      <!-- Terrain texture suggestion -->
+      <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 2px,rgba(255,255,255,0.02) 2px,rgba(255,255,255,0.02) 4px);"></div>
+
+      <!-- Map emoji placeholder -->
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:48px;opacity:0.3;">🗻</div>
+
+      <!-- Top-left: logo + search -->
+      <div style="position:absolute;top:14px;left:14px;background:rgba(10,15,25,0.75);backdrop-filter:blur(12px);border:1px solid rgba(126,207,255,0.2);border-radius:10px;padding:10px 14px;font-size:11px;color:#e0e8ff;min-width:180px;">
+        <div style="color:#7ecfff;font-weight:700;letter-spacing:2px;font-size:10px;margin-bottom:6px;">⛰ ALPINESNOWMAP</div>
+        <div style="background:rgba(255,255,255,0.07);border-radius:6px;padding:5px 8px;color:#888;font-size:10px;">🔍 Cerca zona...</div>
+      </div>
+
+      <!-- Top-right: layer toggles -->
+      <div style="position:absolute;top:14px;right:14px;background:rgba(10,15,25,0.75);backdrop-filter:blur(12px);border:1px solid rgba(126,207,255,0.2);border-radius:10px;padding:10px 12px;font-size:10px;color:#aac;">
+        <div style="margin-bottom:5px;color:#7ecfff;font-size:9px;letter-spacing:1px;">LAYER</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><span style="width:10px;height:10px;background:#7ecfff;border-radius:2px;display:inline-block;"></span> Neve MODIS</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><span style="width:10px;height:10px;background:#ff6b6b;border-radius:2px;display:inline-block;"></span> Valanghe AINEVA</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><span style="width:10px;height:10px;background:#888;border-radius:2px;display:inline-block;"></span> Satellite</label>
+        </div>
+        <div style="margin-top:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;color:#666;font-size:10px;">
+          <span>☀</span><span>🌙</span>
+        </div>
+      </div>
+
+      <!-- Bottom: info bar + date -->
+      <div style="position:absolute;bottom:14px;left:14px;right:14px;background:rgba(10,15,25,0.82);backdrop-filter:blur(12px);border:1px solid rgba(126,207,255,0.15);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:16px;">
+        <div style="flex:1;">
+          <div style="font-size:9px;color:#7ecfff;letter-spacing:1px;margin-bottom:3px;">ZONA SELEZIONATA</div>
+          <div style="font-size:12px;color:#e0e8ff;">Valle d'Aosta — Gran Paradiso</div>
+        </div>
+        <div style="text-align:center;padding:0 12px;border-left:1px solid rgba(255,255,255,0.1);border-right:1px solid rgba(255,255,255,0.1);">
+          <div style="font-size:9px;color:#aaa;letter-spacing:1px;margin-bottom:3px;">PERICOLO</div>
+          <div style="font-size:18px;font-weight:700;color:#ff9900;">3</div>
+          <div style="font-size:8px;color:#ff9900;">MARCATO</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:9px;color:#aaa;letter-spacing:1px;margin-bottom:3px;">DATA NEVE</div>
+          <div style="font-size:11px;color:#7ecfff;">05 Apr 2026</div>
+        </div>
+        <button style="background:rgba(126,207,255,0.15);border:1px solid rgba(126,207,255,0.3);color:#7ecfff;border-radius:6px;padding:6px 12px;font-size:10px;cursor:pointer;">Dettaglio →</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Perché questa scelta</h3>
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>Punti di forza</h4>
+      <ul>
+        <li>La mappa occupa il 100% dello schermo — è il contenuto principale</li>
+        <li>Glassmorphism (vetro ghiacciato) richiama l'estetica alpina</li>
+        <li>Funziona su desktop e mobile adattandosi: su mobile il bottom bar diventa uno sheet espandibile</li>
+        <li>Dark theme di default — ideale per leggere pericolo valanghe, i colori AINEVA risaltano</li>
+        <li>Toggle dark/light sempre visibile in alto a destra</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>Attenzioni</h4>
+      <ul>
+        <li>I pannelli non devono coprire zone critiche della mappa — servono margini pensati</li>
+        <li>Su mobile: i layer controls collassano in un menu hamburger</li>
+      </ul>
+    </div>
+  </div>
+</div>

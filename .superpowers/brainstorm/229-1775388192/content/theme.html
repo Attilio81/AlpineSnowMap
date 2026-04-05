@@ -1,0 +1,41 @@
+<h2>Tema dell'interfaccia</h2>
+<p class="subtitle">Quale stile visivo preferisci per l'app?</p>
+
+<div class="options">
+  <div class="option" data-choice="dark" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Dark Mode</h3>
+      <p>Sfondo scuro, ideale per uso in montagna e condizioni di luce variabile. Standard per le app outdoor.</p>
+      <div style="margin-top:12px;background:#1a1a2e;border-radius:8px;padding:12px;font-size:12px;color:#e0e0e0;">
+        <span style="color:#7ecfff;">■</span> Neve &nbsp;
+        <span style="color:#ff6b6b;">■</span> Pericolo forte &nbsp;
+        <span style="color:#ffd93d;">■</span> Pericolo limitato
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="light" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Light Mode</h3>
+      <p>Interfaccia chiara, leggibile alla luce del sole. Adatta per consultazione rapida prima di uscire.</p>
+      <div style="margin-top:12px;background:#f5f5f5;border-radius:8px;padding:12px;font-size:12px;color:#333;border:1px solid #ddd;">
+        <span style="color:#0077cc;">■</span> Neve &nbsp;
+        <span style="color:#cc0000;">■</span> Pericolo forte &nbsp;
+        <span style="color:#cc8800;">■</span> Pericolo limitato
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="system" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Segue il sistema</h3>
+      <p>Dark o light in base alle impostazioni del dispositivo. Massima flessibilità, un po' più complesso da implementare.</p>
+      <div style="margin-top:12px;background:linear-gradient(90deg,#1a1a2e 50%,#f5f5f5 50%);border-radius:8px;padding:12px;font-size:12px;">
+        <span style="color:#7ecfff;">dark</span> / <span style="color:#333;">light</span>
+      </div>
+    </div>
+  </div>
+</div>
