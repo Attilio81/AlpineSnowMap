@@ -9,6 +9,7 @@ import TopBar from './components/FloatingUI/TopBar.jsx'
 import LayerPanel from './components/FloatingUI/LayerPanel.jsx'
 import InfoBar from './components/FloatingUI/InfoBar.jsx'
 import DetailSheet from './components/FloatingUI/DetailSheet.jsx'
+import Toast from './components/Toast.jsx'
 
 function AppInner() {
   const { state } = useApp()
@@ -24,6 +25,7 @@ function AppInner() {
   return (
     <div style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
       <MapView mapRef={mapRef} onMapReady={() => setMapReady(true)} />
+      <Toast />
       {mapReady && (
         <>
           <SnowLayer mapRef={mapRef} />
