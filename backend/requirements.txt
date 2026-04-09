@@ -25,3 +25,4 @@ websockets==16.0
 agno
 openai
 mcp[cli]
+ddgs
