@@ -20,44 +20,84 @@ const SATELLITE_SOURCE = {
 
 export default function MapView({ mapRef, onMapReady }) {
   const containerRef = useRef(null)
+  const baseFillsRef = useRef([])   // OSM fill/background layer IDs collected at load
   const { state } = useApp()
 
   useEffect(() => {
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: 'https://tiles.openfreemap.org/styles/liberty',
-      center: [7.32, 45.74],
-      zoom: 9,
-      pitch: 50,
-      bearing: 0,
-      antialias: true,
-    })
+    const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY ?? ''
+    let map
 
-    map.addControl(new maplibregl.NavigationControl(), 'top-right')
+    async function initMap() {
+      // Fetch Liberty style and override glyphs to use MapTiler font server
+      // (OpenFreeMap's font CDN returns 404 for the font stack in this style)
+      const styleJson = await fetch('https://tiles.openfreemap.org/styles/liberty').then(r => r.json())
+      if (MAPTILER_KEY) {
+        styleJson.glyphs = `https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key=${MAPTILER_KEY}`
+      }
 
-    map.on('load', () => {
-      map.addSource('terrain-dem', TERRARIUM_SOURCE)
-      map.setTerrain({ source: 'terrain-dem', exaggeration: 1.4 })
-      map.setFog({})
+      map = new maplibregl.Map({
+        container: containerRef.current,
+        style: styleJson,
+        center: [7.32, 45.74],
+        zoom: 9,
+        pitch: 50,
+        bearing: 0,
+        antialias: true,
+      })
 
-      map.addSource('satellite', SATELLITE_SOURCE)
-      const firstSymbolId = map.getStyle().layers.find(l => l.type === 'symbol')?.id
-      map.addLayer(
-        {
-          id: 'satellite-raster',
-          type: 'raster',
-          source: 'satellite',
-          paint: { 'raster-opacity': 0.9 },
-          layout: { visibility: 'none' },
-        },
-        firstSymbolId
-      )
+      map.addControl(new maplibregl.NavigationControl(), 'top-right')
 
-      mapRef.current = map
-      onMapReady?.()
-    })
+      map.on('load', () => {
+        map.addSource('terrain-dem', TERRARIUM_SOURCE)
+        map.setTerrain({ source: 'terrain-dem', exaggeration: 1.4 })
 
-    return () => map.remove()
+        map.addSource('satellite', SATELLITE_SOURCE)
+        const layers = map.getStyle().layers
+
+        // Collect OSM fill/background IDs before we add any custom layer
+        baseFillsRef.current = layers
+          .filter(l => l.type === 'fill' || l.type === 'background')
+          .map(l => l.id)
+
+        // Anchor: first line layer — rasters go below OSM trails/roads, hillshade too
+        const firstLineId = layers.find(l => l.type === 'line')?.id
+                         ?? layers.find(l => l.type === 'symbol')?.id
+
+        map.addLayer(
+          {
+            id: 'satellite-raster',
+            type: 'raster',
+            source: 'satellite',
+            paint: { 'raster-opacity': 0.9 },
+            layout: { visibility: 'none' },
+          },
+          firstLineId
+        )
+
+        // Hillshade sits above rasters but still below OSM trail lines
+        map.addLayer(
+          {
+            id: 'terrain-hillshade',
+            type: 'hillshade',
+            source: 'terrain-dem',
+            paint: {
+              'hillshade-exaggeration': 0.45,
+              'hillshade-shadow-color': '#18283a',
+              'hillshade-highlight-color': '#ffffff',
+              'hillshade-accent-color': '#18283a',
+              'hillshade-illumination-anchor': 'viewport',
+            },
+          },
+          firstLineId
+        )
+
+        mapRef.current = map
+        onMapReady?.()
+      })
+    }
+
+    initMap()
+    return () => { if (map) map.remove() }
   }, [])
 
   useEffect(() => {
@@ -65,6 +105,16 @@ export default function MapView({ mapRef, onMapReady }) {
     if (!map?.getLayer('satellite-raster')) return
     map.setLayoutProperty('satellite-raster', 'visibility', state.layers.satellite ? 'visible' : 'none')
   }, [state.layers.satellite])
+
+  // satView: hide OSM fills to expose the MODIS photo as clean base map
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !baseFillsRef.current.length) return
+    const v = state.layers.satView ? 'none' : 'visible'
+    baseFillsRef.current.forEach(id => {
+      try { map.setLayoutProperty(id, 'visibility', v) } catch {}
+    })
+  }, [state.layers.satView])
 
   useEffect(() => {
     const map = mapRef.current
