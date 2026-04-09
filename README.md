@@ -1,5 +1,7 @@
 # AlpineSnowMap
 
+![AlpineSnowMap](immagine1.png)
+
 Mappa interattiva delle condizioni nivologiche alpine italiane. Combina dati satellite, bollettini valanghe e un team di agenti AI specializzati per pianificare gite scialpinistiche in sicurezza.
 
 ## Funzionalità
