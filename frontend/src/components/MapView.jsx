@@ -34,6 +34,19 @@ export default function MapView({ mapRef, onMapReady }) {
       if (MAPTILER_KEY) {
         styleJson.glyphs = `https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key=${MAPTILER_KEY}`
       }
+      // Fix: Liberty style uses bare ["get","height"] for building extrusion.
+      // OSM buildings with null height cause "Expected number, found null" in MapLibre.
+      // Wrap every fill-extrusion-height / fill-extrusion-base with coalesce(..., 0).
+      styleJson.layers = styleJson.layers.map(layer => {
+        if (layer.type !== 'fill-extrusion') return layer
+        const paint = { ...layer.paint }
+        for (const key of ['fill-extrusion-height', 'fill-extrusion-base']) {
+          if (paint[key] != null) {
+            paint[key] = ['coalesce', paint[key], 0]
+          }
+        }
+        return { ...layer, paint }
+      })
 
       map = new maplibregl.Map({
         container: containerRef.current,
