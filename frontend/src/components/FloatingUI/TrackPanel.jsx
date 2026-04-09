@@ -42,10 +42,9 @@ export default function TrackPanel({ waypoints, stats, onUndo, onClear, onExport
   const [riskResult, setRiskResult] = useState(null)
   const [riskLoading, setRiskLoading] = useState(false)
   const [riskError, setRiskError] = useState(null)
+  const chartPoints = useMemo(() => buildChartPoints(waypoints), [waypoints])
 
   if (waypoints.length === 0) return null
-
-  const chartPoints = useMemo(() => buildChartPoints(waypoints), [waypoints])
 
   async function analyzeRisk() {
     setRiskLoading(true)
