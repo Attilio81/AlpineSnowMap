@@ -50,19 +50,26 @@ async def get_avalanche_bulletin(province: str) -> dict:
 
 
 @mcp.tool()
-async def get_snow_coverage(lat: float, lon: float, date: str) -> dict:
-    """Stima copertura neve Sentinel-2/MODIS per una coordinata e data (YYYY-MM-DD)."""
+async def get_snow_coverage(lat: float, lon: float, date: str = "") -> dict:
+    """Stima copertura neve Sentinel-2/MODIS per una coordinata. date opzionale (YYYY-MM-DD).
+    Sentinel-2 ha revisita di ~5 giorni, quindi dati di oggi potrebbero non essere disponibili.
+    Usa la mappa AlpineSnowMap per visualizzare NDSI in tempo reale."""
     today = date_type.today().isoformat()
+    ref_date = date or today
     return {
         "lat": lat,
         "lon": lon,
-        "date": date,
+        "reference_date": ref_date,
+        "today": today,
+        "sentinel2_revisit_days": 5,
         "note": (
-            f"Dati neve Sentinel-2 disponibili tramite layer mappa per {date}. "
-            f"Usa la mappa AlpineSnowMap per visualizzare NDSI (neve >= 0.2) a 10m. "
-            f"Data odierna: {today}."
+            f"Sentinel-2 non ha immagini giornaliere: revisita ~5 giorni. "
+            f"Data odierna: {today}. "
+            f"I dati più recenti disponibili sulla mappa potrebbero essere di alcuni giorni fa. "
+            f"In condizioni di neve fresca recente, la copertura potrebbe essere sottostimata."
         ),
-        "source": "Sentinel-2 L2A / MODIS via NASA GIBS",
+        "modis_daily": "MODIS (NASA GIBS) ha dati giornalieri a 500m — meno preciso ma più aggiornato.",
+        "source": "Sentinel-2 L2A 10m / MODIS Terra 500m via NASA GIBS",
     }
 
 
