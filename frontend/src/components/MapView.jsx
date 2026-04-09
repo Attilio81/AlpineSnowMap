@@ -18,25 +18,26 @@ const SATELLITE_SOURCE = {
   attribution: '© Esri',
 }
 
-export default function MapView({ mapRef, onMapReady }) {
+export default function MapView({ mapRef, onMapReady, onMapDestroy }) {
   const containerRef = useRef(null)
   const baseFillsRef = useRef([])   // OSM fill/background layer IDs collected at load
   const { state } = useApp()
 
   useEffect(() => {
     const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY ?? ''
-    let map
+    let cancelled = false  // guard against StrictMode double-invoke and HMR
+    let map = null
 
     async function initMap() {
-      // Fetch Liberty style and override glyphs to use MapTiler font server
-      // (OpenFreeMap's font CDN returns 404 for the font stack in this style)
       const styleJson = await fetch('https://tiles.openfreemap.org/styles/liberty').then(r => r.json())
+      if (cancelled) return  // cleanup ran before fetch completed — discard
+
       if (MAPTILER_KEY) {
         styleJson.glyphs = `https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key=${MAPTILER_KEY}`
       }
+
       // Fix: Liberty style uses bare ["get","height"] for building extrusion.
       // OSM buildings with null height cause "Expected number, found null" in MapLibre.
-      // Wrap every fill-extrusion-height / fill-extrusion-base with coalesce(..., 0).
       styleJson.layers = styleJson.layers.map(layer => {
         if (layer.type !== 'fill-extrusion') return layer
         const paint = { ...layer.paint }
@@ -61,18 +62,18 @@ export default function MapView({ mapRef, onMapReady }) {
       map.addControl(new maplibregl.NavigationControl(), 'top-right')
 
       map.on('load', () => {
+        if (cancelled) return  // cleanup ran after map created but before load fired
+
         map.addSource('terrain-dem', TERRARIUM_SOURCE)
         map.setTerrain({ source: 'terrain-dem', exaggeration: 1.4 })
 
         map.addSource('satellite', SATELLITE_SOURCE)
         const layers = map.getStyle().layers
 
-        // Collect OSM fill/background IDs before we add any custom layer
         baseFillsRef.current = layers
           .filter(l => l.type === 'fill' || l.type === 'background')
           .map(l => l.id)
 
-        // Anchor: first line layer — rasters go below OSM trails/roads, hillshade too
         const firstLineId = layers.find(l => l.type === 'line')?.id
                          ?? layers.find(l => l.type === 'symbol')?.id
 
@@ -87,7 +88,6 @@ export default function MapView({ mapRef, onMapReady }) {
           firstLineId
         )
 
-        // Hillshade sits above rasters but still below OSM trail lines
         map.addLayer(
           {
             id: 'terrain-hillshade',
@@ -104,13 +104,50 @@ export default function MapView({ mapRef, onMapReady }) {
           firstLineId
         )
 
+        // Click-to-copy coordinates
+        let coordPopup = null
+        map.on('click', e => {
+          const { lng, lat } = e.lngLat
+          const text = `${lat.toFixed(6)}, ${lng.toFixed(6)}`
+          if (coordPopup) coordPopup.remove()
+
+          const div = document.createElement('div')
+          div.style.cssText = 'font-family:var(--font-ui,Inter,sans-serif);font-size:12px;color:#e8f4ff;display:flex;align-items:center;gap:8px;padding:2px 0'
+          const span = document.createElement('span')
+          span.style.cssText = 'letter-spacing:0.03em;opacity:0.9'
+          span.textContent = text
+          const btn = document.createElement('button')
+          btn.textContent = 'Copia'
+          btn.style.cssText = 'background:rgba(126,207,255,0.15);border:1px solid rgba(126,207,255,0.35);color:#7ecfff;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;font-family:inherit;transition:background 0.15s'
+          btn.onmouseenter = () => { btn.style.background = 'rgba(126,207,255,0.28)' }
+          btn.onmouseleave = () => { btn.style.background = 'rgba(126,207,255,0.15)' }
+          btn.onclick = () => {
+            navigator.clipboard.writeText(text).then(() => {
+              btn.textContent = '✓'
+              setTimeout(() => { btn.textContent = 'Copia' }, 1500)
+            })
+          }
+          div.appendChild(span)
+          div.appendChild(btn)
+
+          coordPopup = new maplibregl.Popup({ closeButton: true, maxWidth: 'none' })
+            .setLngLat(e.lngLat)
+            .setDOMContent(div)
+            .addTo(map)
+        })
+
         mapRef.current = map
         onMapReady?.()
       })
     }
 
     initMap()
-    return () => { if (map) map.remove() }
+    return () => {
+      cancelled = true
+      onMapDestroy?.()
+      if (map) { map.remove(); map = null }
+      mapRef.current = null
+    }
   }, [])
 
   useEffect(() => {
@@ -119,7 +156,6 @@ export default function MapView({ mapRef, onMapReady }) {
     map.setLayoutProperty('satellite-raster', 'visibility', state.layers.satellite ? 'visible' : 'none')
   }, [state.layers.satellite])
 
-  // satView: hide OSM fills to expose the MODIS photo as clean base map
   useEffect(() => {
     const map = mapRef.current
     if (!map || !baseFillsRef.current.length) return

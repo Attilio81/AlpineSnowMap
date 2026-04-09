@@ -1,7 +1,7 @@
 import { useApp } from '../../context/AppContext.jsx'
-import { ZONES } from '../../data/zones.js'
+import SearchBar from './SearchBar.jsx'
 
-export default function TopBar() {
+export default function TopBar({ mapRef }) {
   const { state, dispatch } = useApp()
 
   function toggleTheme() {
@@ -19,8 +19,9 @@ export default function TopBar() {
       gap: 12,
       zIndex: 10,
       minWidth: 240,
+      maxWidth: 380,
     }}>
-      <span style={{
+      <span className="topbar-logo" style={{
         fontFamily: 'var(--font-display)',
         fontSize: 14,
         fontWeight: 700,
@@ -31,28 +32,9 @@ export default function TopBar() {
         ⛰ ALPINESNOWMAP
       </span>
 
-      <div style={{ width: 1, height: 20, background: 'var(--border-panel)', flexShrink: 0 }} />
+      <div className="topbar-logo" style={{ width: 1, height: 20, background: 'var(--border-panel)', flexShrink: 0 }} />
 
-      <select
-        value={state.selectedProvince}
-        onChange={e => dispatch({ type: 'SET_PROVINCE', payload: e.target.value })}
-        style={{
-          background: 'transparent',
-          border: 'none',
-          color: 'var(--text-primary)',
-          fontFamily: 'var(--font-ui)',
-          fontSize: 13,
-          cursor: 'pointer',
-          outline: 'none',
-          flex: 1,
-        }}
-      >
-        {ZONES.map(z => (
-          <option key={z.id} value={z.id} style={{ background: '#1a2030' }}>
-            {z.name}
-          </option>
-        ))}
-      </select>
+      <SearchBar mapRef={mapRef} />
 
       <button
         className="icon-btn"

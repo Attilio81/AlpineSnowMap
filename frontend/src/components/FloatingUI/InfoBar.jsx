@@ -8,7 +8,7 @@ export default function InfoBar() {
   const zone = ZONES.find(z => z.id === state.selectedProvince)
   const b = state.bulletin
   const maxDanger = b?.maxDanger
-  const today = new Date().toISOString().split('T')[0]
+  const maxDate = new Date().toISOString().split('T')[0]
 
   return (
     <div className="panel" style={{
@@ -51,7 +51,7 @@ export default function InfoBar() {
         <input
           type="date"
           value={state.selectedDate}
-          max={today}
+          max={maxDate}
           min="2000-01-01"
           onChange={e => dispatch({ type: 'SET_DATE', payload: e.target.value })}
           style={{

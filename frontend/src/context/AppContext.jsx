@@ -1,15 +1,20 @@
 import { createContext, useContext, useReducer } from 'react'
 import { DEFAULT_ZONE } from '../data/zones.js'
 
-const today = new Date().toISOString().split('T')[0]
-
 const initialState = {
-  selectedDate: today,
+  selectedDate: new Date().toISOString().split('T')[0], // overwritten by findLatestGibsDate on mount
   selectedProvince: DEFAULT_ZONE.id,
   layers: {
     snow: true,
     avalanche: true,
     satellite: false,
+    trueColor: false,
+    sentinel: false,      // EOX Sentinel-2 2024 cloudless basemap (10m)
+    sentinelSnow: false,  // Copernicus Sentinel-2 NDSI snow cover live (10m, richiede backend)
+    peaks: true,          // vette alpine da OpenStreetMap
+    topo: false,          // curve di livello MapTiler vettoriali
+    slope: false,         // pendenza valanghe (gradi) — server-side Terrarium DEM
+    satView: false,   // satellite base mode: hides OSM fills, activates Sentinel-2 + hillshade
   },
   theme: 'dark',
   bulletin: null,

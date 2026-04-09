@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useApp } from '../context/AppContext.jsx'
 import { DANGER_COLORS } from '../utils/aineva.js'
-import regionsGeoJson from '../data/regions.geojson'
+import regionsGeoJson from '../data/regions.geojson?url'
 
 const SOURCE_ID = 'aineva-regions'
 const FILL_ID   = 'aineva-fill'
@@ -40,6 +40,11 @@ export default function AinevaLayer({ mapRef }) {
       layout: { visibility: state.layers.avalanche ? 'visible' : 'none' },
     })
 
+    // Filter to show only regions belonging to the selected province (prefix match on properties.id)
+    const provinceFilter = ['==', ['slice', ['coalesce', ['get', 'id'], ''], 0, state.selectedProvince.length], state.selectedProvince]
+    map.setFilter(FILL_ID, provinceFilter)
+    map.setFilter(LINE_ID, provinceFilter)
+
     const handleClick = () => dispatch({ type: 'SET_SHEET_OPEN', payload: true })
     const handleMouseEnter = () => { map.getCanvas().style.cursor = 'pointer' }
     const handleMouseLeave = () => { map.getCanvas().style.cursor = '' }
@@ -48,13 +53,15 @@ export default function AinevaLayer({ mapRef }) {
     map.on('mouseleave', FILL_ID, handleMouseLeave)
 
     return () => {
-      map.off('click', FILL_ID, handleClick)
-      map.off('mouseenter', FILL_ID, handleMouseEnter)
-      map.off('mouseleave', FILL_ID, handleMouseLeave)
-      map.getCanvas().style.cursor = ''
-      if (map.getLayer(LINE_ID)) map.removeLayer(LINE_ID)
-      if (map.getLayer(FILL_ID)) map.removeLayer(FILL_ID)
-      if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID)
+      try {
+        map.off('click', FILL_ID, handleClick)
+        map.off('mouseenter', FILL_ID, handleMouseEnter)
+        map.off('mouseleave', FILL_ID, handleMouseLeave)
+        map.getCanvas().style.cursor = ''
+        if (map.getLayer(LINE_ID)) map.removeLayer(LINE_ID)
+        if (map.getLayer(FILL_ID)) map.removeLayer(FILL_ID)
+        if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID)
+      } catch {}
     }
   }, [])
 
@@ -63,6 +70,15 @@ export default function AinevaLayer({ mapRef }) {
     if (!map?.getLayer(FILL_ID)) return
     map.setPaintProperty(FILL_ID, 'fill-color', getDangerColor(state.bulletin))
   }, [state.bulletin])
+
+  // Filter to selected province when it changes
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map?.getLayer(FILL_ID)) return
+    const filter = ['==', ['slice', ['coalesce', ['get', 'id'], ''], 0, state.selectedProvince.length], state.selectedProvince]
+    map.setFilter(FILL_ID, filter)
+    map.setFilter(LINE_ID, filter)
+  }, [state.selectedProvince])
 
   useEffect(() => {
     const map = mapRef.current

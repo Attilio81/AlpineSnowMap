@@ -1,11 +1,15 @@
 import { useEffect } from 'react'
 import { useApp } from '../context/AppContext.jsx'
-import { buildSnowTileUrl } from '../hooks/useSnowLayer.js'
 
-const SOURCE_ID = 'snow-modis'
-const LAYER_ID  = 'snow-layer'
+const SOURCE_ID = 'copernicus-snow'
+const LAYER_ID  = 'copernicus-snow-layer'
+const API_BASE  = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
-export default function SnowLayer({ mapRef }) {
+function buildUrl(date) {
+  return `${API_BASE}/api/snow/{z}/{x}/{y}.png?date=${date}`
+}
+
+export default function CopernicusSnowLayer({ mapRef }) {
   const { state, dispatch } = useApp()
 
   useEffect(() => {
@@ -14,23 +18,23 @@ export default function SnowLayer({ mapRef }) {
 
     map.addSource(SOURCE_ID, {
       type: 'raster',
-      tiles: [buildSnowTileUrl(state.selectedDate)],
+      tiles: [buildUrl(state.selectedDate)],
       tileSize: 256,
-      maxzoom: 8,
-      attribution: 'NASA GIBS / MODIS Terra',
+      maxzoom: 13,
+      attribution: '© Copernicus / Sentinel-2',
     })
 
-    // Insert below OSM line layers so trails/roads stay visible above snow
     const layers = map.getStyle().layers
     const anchor = layers.find(l => l.type === 'line')?.id
                 ?? layers.find(l => l.type === 'symbol')?.id
+
     map.addLayer(
       {
         id: LAYER_ID,
         type: 'raster',
         source: SOURCE_ID,
-        paint: { 'raster-opacity': 0.72 },
-        layout: { visibility: state.layers.snow ? 'visible' : 'none' },
+        paint: { 'raster-opacity': 0.85 },
+        layout: { visibility: state.layers.sentinelSnow ? 'visible' : 'none' },
       },
       anchor
     )
@@ -39,7 +43,7 @@ export default function SnowLayer({ mapRef }) {
     const handleError = e => {
       if (e.sourceId === SOURCE_ID && !toastFired) {
         toastFired = true
-        dispatch({ type: 'SET_TOAST', payload: { message: 'Copertura nuvolosa — prova una data precedente', type: 'info' } })
+        dispatch({ type: 'SET_TOAST', payload: { message: 'Neve Sentinel: nessun dato per questa data', type: 'info' } })
       }
     }
     map.on('error', handleError)
@@ -56,14 +60,14 @@ export default function SnowLayer({ mapRef }) {
   useEffect(() => {
     const map = mapRef.current
     if (!map?.getSource(SOURCE_ID)) return
-    map.getSource(SOURCE_ID).setTiles([buildSnowTileUrl(state.selectedDate)])
+    map.getSource(SOURCE_ID).setTiles([buildUrl(state.selectedDate)])
   }, [state.selectedDate])
 
   useEffect(() => {
     const map = mapRef.current
     if (!map?.getLayer(LAYER_ID)) return
-    map.setLayoutProperty(LAYER_ID, 'visibility', state.layers.snow ? 'visible' : 'none')
-  }, [state.layers.snow])
+    map.setLayoutProperty(LAYER_ID, 'visibility', state.layers.sentinelSnow ? 'visible' : 'none')
+  }, [state.layers.sentinelSnow])
 
   return null
 }
