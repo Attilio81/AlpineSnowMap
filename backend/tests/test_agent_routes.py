@@ -70,9 +70,8 @@ def test_team_endpoint_returns_response():
         assert len(resp.json()["response"]) > 0
 
 
-def test_team_endpoint_returns_503_without_api_key():
-    import os
-    os.environ.pop("DEEPSEEK_API_KEY", None)
+def test_team_endpoint_returns_503_without_api_key(monkeypatch):
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
     from fastapi.testclient import TestClient
     from main import app
     client = TestClient(app)

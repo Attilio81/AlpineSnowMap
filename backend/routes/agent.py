@@ -1,4 +1,5 @@
 """Agent endpoints wrapping the Agno + DeepSeek agent."""
+import asyncio
 import os
 import logging
 
@@ -80,8 +81,11 @@ async def query_team(req: TeamQueryRequest):
     team = build_team()
     full_message = f"{req.message}\nProvincia valanghe: {req.province}"
     try:
-        response = await team.arun(full_message)
+        response = await asyncio.wait_for(team.arun(full_message), timeout=60.0)
         return {"response": response.content}
+    except asyncio.TimeoutError:
+        logger.error("Team query timed out after 60s")
+        raise HTTPException(status_code=503, detail="Team timeout — riprova più tardi")
     except Exception as e:
         logger.error("Team query failed: %s", e)
         raise HTTPException(status_code=503, detail="Team temporaneamente non disponibile")
