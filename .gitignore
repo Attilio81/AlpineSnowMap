@@ -1,8 +1,14 @@
 node_modules
 .env.local
+*.env.local.*
 backend/.venv
+backend/.env
 dist
 **/__pycache__/
 **/*.pyc
 .vscode/
 .idea/
+.claude/
+.superpowers/
+docs/superpowers/
+FATMAP-Replacement-*.jpg
