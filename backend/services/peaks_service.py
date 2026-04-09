@@ -18,10 +18,11 @@ async def get_nearby_peaks(lat: float, lon: float, radius_km: float = 10.0) -> l
     """Named alpine peaks within radius_km of (lat, lon).
     Returns list of {name, ele, distance_km, lat, lon} sorted by distance.
     """
-    pad = radius_km / 111.0
+    lat_pad = radius_km / 111.0
+    lon_pad = radius_km / (111.0 * math.cos(math.radians(lat)))
     query = f"""
 [out:json][timeout:15];
-node["natural"="peak"]["name"]({lat-pad},{lon-pad},{lat+pad},{lon+pad});
+node["natural"="peak"]["name"]({lat - lat_pad},{lon - lon_pad},{lat + lat_pad},{lon + lon_pad});
 out body;
 """
     async with httpx.AsyncClient(timeout=20) as client:

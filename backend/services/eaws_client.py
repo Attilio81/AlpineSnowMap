@@ -16,13 +16,21 @@ _cache: dict[str, tuple[float, dict]] = {}
 AVALANCHE_REPORT_PROVINCES = {"IT-32-BZ", "IT-32-TN"}
 
 
+_DANGER_MAP = {"low": 1, "moderate": 2, "considerable": 3, "high": 4, "very_high": 5}
+
+
 def _extract_max_danger(bulletins: list) -> int:
     max_val = 0
     for b in bulletins:
         for dr in b.get("dangerRatings", []):
-            val = dr.get("mainValue", {})
-            numeric = val.get("numeric", 0) if isinstance(val, dict) else 0
-            max_val = max(max_val, int(numeric))
+            val = dr.get("mainValue", "")
+            if isinstance(val, str):
+                numeric = _DANGER_MAP.get(val, 0)
+            elif isinstance(val, (int, float)):
+                numeric = int(val)
+            else:
+                numeric = 0
+            max_val = max(max_val, numeric)
     return max_val
 
 

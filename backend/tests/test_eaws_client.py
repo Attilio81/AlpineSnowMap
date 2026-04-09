@@ -5,7 +5,7 @@ import asyncio
 def test_fetch_bulletin_returns_available_structure():
     mock_data = [
         {
-            "dangerRatings": [{"mainValue": {"numeric": 2}}],
+            "dangerRatings": [{"mainValue": "moderate"}],
             "avalancheProblems": [{"problemType": "wind_slab"}],
             "highlights": "Pericolo limitato",
             "validTime": {"startTime": "2026-04-09T00:00:00+00:00"},
@@ -21,11 +21,13 @@ def test_fetch_bulletin_returns_available_structure():
         MockClient.return_value.__aexit__ = AsyncMock(return_value=False)
 
         async def run():
+            import services.eaws_client as eaws
+            eaws._cache.clear()
             from services.eaws_client import fetch_bulletin
             result = await fetch_bulletin("IT-32-BZ")
             assert result["available"] is True
             assert "bulletins" in result
-            assert "maxDanger" in result
+            assert result["maxDanger"] == 2  # "moderate" maps to 2
 
         asyncio.run(run())
 

@@ -1,4 +1,5 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -27,7 +28,7 @@ async def get_mountain_weather(lat: float, lon: float) -> dict:
     hourly = data["hourly"]
     times = hourly["time"]
 
-    now_str = datetime.now(tz=timezone(timedelta(hours=2))).strftime("%Y-%m-%dT%H:00")
+    now_str = datetime.now(tz=ZoneInfo("Europe/Rome")).strftime("%Y-%m-%dT%H:00")
     idx = times.index(now_str) if now_str in times else max(0, len(times) // 2)
 
     snowfall_48h = sum(hourly["snowfall"][max(0, idx - 48): idx + 1])
