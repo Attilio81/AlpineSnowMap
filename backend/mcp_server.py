@@ -7,6 +7,7 @@ from datetime import date as date_type
 from mcp.server.fastmcp import FastMCP
 
 from services.aineva_client import fetch_bulletin
+from services.peaks_service import get_nearby_peaks as _get_nearby_peaks
 from services.slope_service import get_slope_stats
 
 mcp = FastMCP("AlpineSnowMap")
@@ -87,38 +88,10 @@ async def get_slope_data(lat: float, lon: float, radius_km: float = 2.0) -> dict
 @mcp.tool()
 async def get_nearby_peaks(lat: float, lon: float, radius_km: float = 10.0) -> list:
     """Cime alpine vicine a una coordinata. Ritorna lista {name, ele, distance_km}."""
-    import httpx as _httpx
-    OVERPASS_URL = "https://overpass-api.de/api/interpreter"
-    pad = radius_km / 111.0
-    query = f"""
-[out:json][timeout:15];
-node["natural"="peak"]["name"]({lat-pad},{lon-pad},{lat+pad},{lon+pad});
-out body;
-"""
     try:
-        async with _httpx.AsyncClient(timeout=20) as client:
-            resp = await client.post(OVERPASS_URL, data={"data": query})
-            resp.raise_for_status()
-            data = resp.json()
+        return await _get_nearby_peaks(lat, lon, radius_km)
     except Exception as e:
         return [{"error": str(e)}]
-
-    peaks = []
-    for el in data.get("elements", []):
-        tags = el.get("tags", {})
-        name = tags.get("name") or tags.get("name:it") or tags.get("name:de")
-        if not name:
-            continue
-        dist = _haversine_km(lat, lon, el["lat"], el["lon"])
-        if dist <= radius_km:
-            peaks.append({
-                "name": name,
-                "ele": int(float(tags["ele"])) if tags.get("ele") else None,
-                "distance_km": round(dist, 2),
-                "lat": el["lat"],
-                "lon": el["lon"],
-            })
-    return sorted(peaks, key=lambda p: p["distance_km"])
 
 
 @mcp.tool()
