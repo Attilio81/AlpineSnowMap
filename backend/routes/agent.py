@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from services.agno_agent import build_agent
+from services.agno_team import build_team
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/agent")
@@ -61,3 +62,26 @@ async def analyze_route(req: RouteRequest):
         raise HTTPException(status_code=503, detail="Analisi traccia temporaneamente non disponibile")
     finally:
         await mcp_tools.close()
+
+
+class TeamQueryRequest(BaseModel):
+    message: str
+    province: str = "IT-23"
+
+
+@router.post("/team")
+async def query_team(req: TeamQueryRequest):
+    """Multi-agent team query: terrain + snow/weather + avalanche + web search.
+    Returns: {"response": str}
+    """
+    if not os.getenv("DEEPSEEK_API_KEY"):
+        raise HTTPException(status_code=503, detail="DEEPSEEK_API_KEY not configured")
+
+    team = build_team()
+    full_message = f"{req.message}\nProvincia valanghe: {req.province}"
+    try:
+        response = await team.arun(full_message)
+        return {"response": response.content}
+    except Exception as e:
+        logger.error("Team query failed: %s", e)
+        raise HTTPException(status_code=503, detail="Team temporaneamente non disponibile")

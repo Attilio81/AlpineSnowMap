@@ -45,3 +45,39 @@ def test_query_missing_message_returns_422():
     client = TestClient(app)
     res = client.post("/api/agent/query", json={})
     assert res.status_code == 422
+
+
+def test_team_endpoint_returns_response():
+    from unittest.mock import patch, AsyncMock, MagicMock
+    import os
+    os.environ["DEEPSEEK_API_KEY"] = "test-key"
+
+    mock_team = MagicMock()
+    mock_response = MagicMock()
+    mock_response.content = "## Cime vicine\n| Monte Roisetta | 3333 m | ✓ |"
+    mock_team.arun = AsyncMock(return_value=mock_response)
+
+    with patch("routes.agent.build_team", return_value=mock_team):
+        from fastapi.testclient import TestClient
+        from main import app
+        client = TestClient(app)
+        resp = client.post(
+            "/api/agent/team",
+            json={"message": "Cime adatte a Torgnon?", "province": "IT-23"},
+        )
+        assert resp.status_code == 200
+        assert "response" in resp.json()
+        assert len(resp.json()["response"]) > 0
+
+
+def test_team_endpoint_returns_503_without_api_key():
+    import os
+    os.environ.pop("DEEPSEEK_API_KEY", None)
+    from fastapi.testclient import TestClient
+    from main import app
+    client = TestClient(app)
+    resp = client.post(
+        "/api/agent/team",
+        json={"message": "test", "province": "IT-23"},
+    )
+    assert resp.status_code == 503
