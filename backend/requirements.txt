@@ -23,4 +23,5 @@ uvicorn==0.43.0
 watchfiles==1.1.1
 websockets==16.0
 agno
+openai
 mcp[cli]
