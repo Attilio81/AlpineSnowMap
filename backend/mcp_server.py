@@ -84,6 +84,53 @@ async def get_nearby_peaks(lat: float, lon: float, radius_km: float = 10.0) -> l
 
 
 @mcp.tool()
+async def get_peaks_with_data(lat: float, lon: float, radius_km: float = 10.0) -> list:
+    """Cime alpine vicine con pendenza DEM per ognuna. radius_km configurabile (default 10).
+    Ritorna lista di {name, ele, distance_km, avg_slope_deg, max_slope_deg, ski_suitable}.
+    ski_suitable = True se avg_slope_deg è tra 25 e 35° (ottimale per scialpinismo).
+    Deduplicazione tile: più cime nello stesso tile Terrarium condividono la stessa chiamata DEM.
+    """
+    from services.peaks_service import get_nearby_peaks as _get_peaks
+    try:
+        peaks = await _get_peaks(lat, lon, radius_km)
+    except Exception as e:
+        return [{"error": str(e)}]
+
+    from services.slope_service import lat_lon_to_tile, get_slope_stats
+    tile_cache: dict[tuple, dict] = {}
+    result = []
+    for peak in peaks:
+        tx, ty = lat_lon_to_tile(peak["lat"], peak["lon"], 12)
+        if (tx, ty) not in tile_cache:
+            try:
+                tile_cache[(tx, ty)] = await get_slope_stats(peak["lat"], peak["lon"])
+            except Exception:
+                tile_cache[(tx, ty)] = {"avg_slope_deg": None, "max_slope_deg": None}
+        slope = tile_cache[(tx, ty)]
+        avg = slope.get("avg_slope_deg")
+        result.append({
+            **peak,
+            "avg_slope_deg": avg,
+            "max_slope_deg": slope.get("max_slope_deg"),
+            "ski_suitable": (25.0 <= avg <= 35.0) if avg is not None else None,
+        })
+    return result
+
+
+@mcp.tool()
+async def get_snow_stats(lat: float, lon: float) -> dict:
+    """Copertura neve da MODIS (giornaliero 500m) e Sentinel-2 (10m, revisita ~5 giorni).
+    MODIS: classificazione snow/cloud/no_snow per oggi.
+    Sentinel-2: percentuale area coperta da neve (densa + leggera) con data acquisizione.
+    """
+    from services.snow_service import get_snow_stats as _get_snow
+    try:
+        return await _get_snow(lat, lon)
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
 async def analyze_route_risk(geojson: dict, province: str = "IT-23") -> dict:
     """Risk score valanghe per segmento su traccia GPX/GeoJSON LineString.
     Ritorna: {segments: [{risk: 1-5, color: str, label: str, reason: str, midpoint: [lon,lat]}],
