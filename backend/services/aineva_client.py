@@ -106,9 +106,10 @@ async def fetch_bulletin(province: str) -> dict:
         resp = await client.get(url, headers={"User-Agent": "AlpineSnowMap/1.0"})
         resp.raise_for_status()
         content_type = resp.headers.get("content-type", "")
-        if "xml" not in content_type and "text" not in content_type:
+        if "xml" not in content_type:
             raise RuntimeError(
-                f"AINEVA ha restituito content-type imprevisto: {content_type!r}"
+                f"AINEVA ha restituito content-type imprevisto: {content_type!r}. "
+                f"Probabilmente sta servendo una pagina HTML — controlla bollettini.aineva.it"
             )
 
     data = _parse_xml(resp.text)
