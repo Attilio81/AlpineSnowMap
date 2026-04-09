@@ -41,12 +41,13 @@ mcp_server.py
 - **Output:** Table of peaks with slope classification (optimal: avg 25-35°)
 - **Instructions:** List every peak found; for the 5 closest call get_slope_stats at peak coordinates; mark ski_suitable if avg_slope_deg is 25-35°
 
-### 2. Agente Meteo
-- **Role:** Current mountain weather and recent snowfall
+### 2. Agente Neve/Meteo
+- **Role:** Current mountain weather, recent snowfall, and satellite snow coverage
 - **Tools:**
   - `openmeteo_client.get_mountain_weather(lat, lon)` → temperature, windspeed, snowfall last 48h, freezing level
-- **Output:** Structured weather summary relevant to ski touring
-- **Instructions:** Focus on freezing level (zero termico), fresh snow (ultimi 2 giorni), wind speed; flag dangerous conditions (wind > 50 km/h, rapid warming)
+  - `snow_service.get_snow_stats(lat, lon)` → MODIS daily + Sentinel-2 recent coverage
+- **Output:** Structured weather + snow coverage summary relevant to ski touring
+- **Instructions:** Focus on freezing level (zero termico), fresh snow (ultimi 2 giorni), wind speed; report snow coverage from both sources; flag dangerous conditions (wind > 50 km/h, rapid warming)
 
 ### 3. Agente Valanghe
 - **Role:** Official avalanche bulletin
@@ -89,6 +90,25 @@ GET https://aws.eaws.app/api/public/bulletins?region={province}&lang=it
 ```
 Returns standardized avalanche bulletin. More reliable than AINEVA XML. Province codes: IT-23 (Valle d'Aosta), IT-21 (Piemonte), IT-32-TN (Trentino), etc.
 
+### MODIS Terra NDSI Snow Cover — NASA GIBS (free, no auth)
+```
+GET https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/
+    MODIS_Terra_NDSI_Snow_Cover/default/{date}/GoogleMapsCompatible_Level8/{z}/{y}/{x}.png
+```
+Daily 500m-resolution snow cover tiles. Already used by the frontend map layer. Backend fetches the tile for the coordinate, reads the pixel RGB, classifies as: neve/assente/nuvoloso using the MODIS color palette.
+
+Returns: `{snow_present: bool, cloud_covered: bool, date: str, resolution_m: 500}`
+
+### Sentinel-2 NDSI — Copernicus (existing credentials)
+Reuse `copernicus_client.fetch_snow_tile()` (already implemented for the map layer). Analyze the PNG pixel colors at the coordinate:
+- `[38, 140, 255]` → neve densa (NDSI > 0.4)
+- `[153, 217, 255]` → neve leggera (NDSI 0.2–0.4)
+- transparent → no neve
+
+Returns: `{snow_coverage_pct: float, ndsi_class: "densa"|"leggera"|"assente", date_approx: str, resolution_m: 10}`
+
+Both sources are complementary: MODIS = aggiornato oggi (500m), Sentinel-2 = preciso ma ~5 giorni fa (10m).
+
 ---
 
 ## New MCP Tool: `get_peaks_with_data`
@@ -129,8 +149,9 @@ Returns: {"response": "<markdown string>"}
 | `services/peaks_service.py` | CREATE | Extract Overpass query logic from mcp_server.py |
 | `services/openmeteo_client.py` | CREATE | `get_mountain_weather(lat, lon) -> dict` |
 | `services/eaws_client.py` | CREATE | `fetch_bulletin(province) -> dict` with 6h cache |
-| `services/agno_team.py` | CREATE | `build_team() -> Team` factory |
-| `mcp_server.py` | MODIFY | Add `get_peaks_with_data` tool; import from peaks_service |
+| `services/snow_service.py` | CREATE | `get_snow_stats(lat, lon) -> dict` combining MODIS + Sentinel-2 pixel analysis |
+| `services/agno_team.py` | CREATE | `build_team() -> Team` factory with 4 agents |
+| `mcp_server.py` | MODIFY | Add `get_peaks_with_data` and `get_snow_stats` tools; import from services |
 | `routes/agent.py` | MODIFY | Add `POST /api/agent/team` endpoint |
 | `requirements.txt` | MODIFY | Add `ddgs` (for WebSearchTools) |
 
@@ -146,10 +167,11 @@ Returns: {"response": "<markdown string>"}
 | Becca di Nona | 3142 m | 3.8 km | 22° | — |
 | Punta Tersiva | 3515 m | 5.2 km | 31° | ✓ |
 
-## Meteo oggi (Open-Meteo)
-- Zero termico: 2800 m
-- Neve fresca ultimi 2 giorni: 8 cm
-- Vento: 15 km/h NW
+## Neve e Meteo
+- Zero termico: 2800 m · Vento: 15 km/h NW
+- Neve fresca ultimi 2 giorni: 8 cm (Open-Meteo)
+- Copertura neve oggi (MODIS 500m): neve presente ✓
+- Copertura neve 5 apr (Sentinel-2 10m): 82% neve densa
 
 ## Bollettino valanghe — Valle d'Aosta (EAWS)
 - **Pericolo:** 2 (Limitato) sotto 2200 m · 3 (Marcato) sopra 2200 m
