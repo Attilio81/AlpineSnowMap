@@ -27,8 +27,8 @@ if errorlevel 1 (
 echo [3/3] Avvio backend e frontend...
 echo.
 
-:: Avvia backend (venv già presente e aggiornato)
-start "AlpineSnowMap Backend" cmd /k "cd /d %~dp0backend && .venv\Scripts\activate && uvicorn main:app --reload --port 8000"
+:: Avvia backend — usa python -m uvicorn per evitare problemi di PATH
+start "AlpineSnowMap Backend" cmd /k "cd /d %~dp0backend && .venv\Scripts\python.exe -m uvicorn main:app --reload --port 8000"
 
 :: Aspetta che il backend sia pronto
 timeout /t 3 /nobreak > nul
