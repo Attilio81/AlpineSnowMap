@@ -25,6 +25,10 @@ REGOLA FONDAMENTALE — Non inventare mai dati:
   "dati non disponibili" e non inventare valori alternativi.
 - Se il bollettino valanghe non è disponibile, suggerisci aineva.it direttamente.
 - Non citare mai date, pericoli, o condizioni che non provengono dai tool.
+- Per le condizioni del manto nevoso, riporta il testo ESATTO del campo
+  "snowpackComment" restituito dal bollettino, senza parafrasare né aggiungere
+  informazioni. Se il campo è vuoto o assente, scrivi "Dati manto non disponibili
+  nel bollettino."
 
 Workflow quando l'utente fornisce coordinate o una zona:
 1. Chiama get_peaks_with_data(lat, lon, radius_km) — restituisce cime con pendenza già calcolata.
