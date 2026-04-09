@@ -1,13 +1,12 @@
 """AlpineSnowMap MCP Server — SSE transport.
 Mount in FastAPI: app.mount("/mcp", mcp.sse_app())
 """
-import math
 from datetime import date as date_type
 
 from mcp.server.fastmcp import FastMCP
 
 from services.aineva_client import fetch_bulletin
-from services.peaks_service import get_nearby_peaks as _get_nearby_peaks
+from services.peaks_service import get_nearby_peaks as _get_nearby_peaks, _haversine_km
 from services.slope_service import get_slope_stats
 
 mcp = FastMCP("AlpineSnowMap")
@@ -26,16 +25,6 @@ def _slope_to_risk(avg_slope: float, max_slope: float) -> int:
     if avg_slope >= 25:
         return 1
     return 1
-
-
-def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    R = 6371.0
-    dlat = math.radians(lat2 - lat1)
-    dlon = math.radians(lon2 - lon1)
-    a = (math.sin(dlat / 2) ** 2
-         + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2))
-         * math.sin(dlon / 2) ** 2)
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
 @mcp.tool()
