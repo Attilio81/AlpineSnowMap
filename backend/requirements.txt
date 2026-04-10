@@ -26,3 +26,6 @@ agno
 openai
 mcp[cli]
 ddgs
+# LiDAR GeoTIFF support — opzionale: installa solo se usi il layer LiDAR
+# Richiede GDAL: Ubuntu: apt-get install libgdal-dev | macOS: brew install gdal
+rasterio>=1.3

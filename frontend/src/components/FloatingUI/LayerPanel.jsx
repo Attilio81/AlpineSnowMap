@@ -90,6 +90,19 @@ export default function LayerPanel() {
         onChange={() => toggle('slope')}
       />
 
+      {state.lidarProvinces.includes(state.selectedProvince) && (
+        <div>
+          <LayerToggle
+            label="📐 Pendenza LiDAR 1m"
+            checked={state.layers.lidarSlope}
+            onChange={() => toggle('lidarSlope')}
+          />
+          <p style={{ fontSize: 10, color: 'var(--text-secondary)', marginTop: 3, paddingLeft: 20, lineHeight: 1.4 }}>
+            Alta risoluzione · zoom 10–15
+          </p>
+        </div>
+      )}
+
       <LayerToggle
         label="〰 Curve di livello"
         checked={state.layers.topo}

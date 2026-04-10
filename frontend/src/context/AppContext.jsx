@@ -14,10 +14,12 @@ const initialState = {
     peaks: true,          // vette alpine da OpenStreetMap
     topo: false,          // curve di livello MapTiler vettoriali
     slope: false,         // pendenza valanghe (gradi) — server-side Terrarium DEM
+    lidarSlope: false,    // pendenza LiDAR 1m — solo province con dati (IT-21, IT-23)
     satView: false,   // satellite base mode: hides OSM fills, activates Sentinel-2 + hillshade
   },
   theme: 'dark',
   bulletin: null,
+  lidarProvinces: [],   // province con dati LiDAR disponibili (da /api/lidar/available)
   sheetOpen: false,
   toast: null,         // { message: string, type: 'info'|'error' }
 }
@@ -38,6 +40,8 @@ function reducer(state, action) {
       return { ...state, sheetOpen: action.payload }
     case 'SET_TOAST':
       return { ...state, toast: action.payload }
+    case 'SET_LIDAR_PROVINCES':
+      return { ...state, lidarProvinces: action.payload }
     default:
       return state
   }

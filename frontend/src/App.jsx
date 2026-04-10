@@ -13,6 +13,7 @@ import CopernicusSnowLayer from './components/CopernicusSnowLayer.jsx'
 import PeaksLayer from './components/PeaksLayer.jsx'
 import TopoLayer from './components/TopoLayer.jsx'
 import SlopeLayer from './components/SlopeLayer.jsx'
+import LidarSlopeLayer from './components/LidarSlopeLayer.jsx'
 import TrackLayer from './components/TrackLayer.jsx'
 import TopBar from './components/FloatingUI/TopBar.jsx'
 import LayerPanel from './components/FloatingUI/LayerPanel.jsx'
@@ -31,8 +32,17 @@ function AppInner() {
   useGeolocation()
   useAineva()
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+
   useEffect(() => {
     findLatestGibsDate().then(date => dispatch({ type: 'SET_DATE', payload: date }))
+  }, [])
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/lidar/available`)
+      .then(r => r.json())
+      .then(data => dispatch({ type: 'SET_LIDAR_PROVINCES', payload: data.provinces ?? [] }))
+      .catch(() => {})  // silenzioso — LiDAR opzionale
   }, [])
 
   useEffect(() => {
@@ -47,6 +57,7 @@ function AppInner() {
         <>
           <TopoLayer mapRef={mapRef} />
           <SlopeLayer mapRef={mapRef} />
+          <LidarSlopeLayer mapRef={mapRef} />
           <SentinelLayer mapRef={mapRef} />
           <CopernicusSnowLayer mapRef={mapRef} />
           <TrueColorLayer mapRef={mapRef} />

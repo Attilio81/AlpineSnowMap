@@ -185,7 +185,14 @@ async def build_blender_scene(
     lat: float, lon: float, province: str, date_str: str,
     hour: int, radius_km: float, grid_size: int,
 ) -> dict:
-    """Aggregate all data needed to build a Blender 3D scene."""
+    """Aggregate all data needed to build a Blender 3D scene.
+
+    Elevation grid priority:
+      1. LiDAR regionale (1m) — se il file GeoTIFF è presente in backend/lidar/
+      2. Terrarium DEM (30m via AWS) — fallback universale
+    """
+    from services.lidar_service import get_elevation_grid as lidar_grid
+
     dem_task = _build_dem_composite(lat, lon, radius_km)
     peaks_task = get_nearby_peaks(lat, lon, radius_km)
     bulletin_task = fetch_bulletin(province)
@@ -194,11 +201,33 @@ async def build_blender_scene(
         dem_task, peaks_task, bulletin_task, return_exceptions=True
     )
 
-    # Terrain grids
+    # Terrain grids — preferisci LiDAR se disponibile per la provincia
     terrain = {"error": "DEM non disponibile"}
-    if isinstance(dem, dict):
+    lidar_elev = lidar_grid(lat, lon, radius_km, grid_size, province)
+    if lidar_elev is not None:
+        # LiDAR disponibile: slope calcolato dallo stesso grid ad alta risoluzione
+        dlat = radius_km / 111.0
+        dlon = radius_km / (math.cos(math.radians(lat)) * 111.0)
+        arr = np.array(lidar_elev, dtype=np.float32)
+        res_x = (dlon * 2 * 111_320 * math.cos(math.radians(lat))) / grid_size
+        res_y = (dlat * 2 * 111_320) / grid_size
+        gy, gx = np.gradient(arr)
+        slope_arr = np.degrees(np.arctan(np.sqrt((gx / max(res_x, 0.1))**2 + (gy / max(res_y, 0.1))**2)))
+        terrain = {
+            "rows": grid_size, "cols": grid_size,
+            "lat_min": round(lat - dlat, 6), "lat_max": round(lat + dlat, 6),
+            "lon_min": round(lon - dlon, 6), "lon_max": round(lon + dlon, 6),
+            "resolution_m": round((radius_km * 2000) / grid_size),
+            "ele_min_m": round(float(arr.min()), 1),
+            "ele_max_m": round(float(arr.max()), 1),
+            "source": "LiDAR 1m regionale",
+            "elevation_grid": lidar_elev,
+            "slope_grid": [[round(float(v), 1) for v in row] for row in slope_arr],
+        }
+    elif isinstance(dem, dict):
         elev_grid, slope_grid, grid_meta = _sample_grids(dem, lat, lon, radius_km, grid_size)
-        terrain = {**grid_meta, "elevation_grid": elev_grid, "slope_grid": slope_grid}
+        terrain = {**grid_meta, "source": "Terrarium DEM 30m",
+                   "elevation_grid": elev_grid, "slope_grid": slope_grid}
 
     # Avalanche bulletin
     avalanche: dict = {"available": False}
