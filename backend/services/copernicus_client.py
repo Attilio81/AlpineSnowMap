@@ -6,29 +6,37 @@ from typing import Optional
 
 import httpx
 
+from config import (
+    NDSI_LIGHT_SNOW, NDSI_DENSE_SNOW,
+    NDSI_COLOR_LIGHT, NDSI_COLOR_DENSE,
+    COPERNICUS_MAX_CACHE_TILES,
+)
+
 TOKEN_URL = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
 PROCESS_URL = "https://sh.dataspace.copernicus.eu/api/v1/process"
 
 # NDSI evalscript: blue-tinted overlay where snow is detected
 # B03 (Green) and B11 (SWIR) → NDSI = (B03-B11)/(B03+B11)
-EVALSCRIPT = """
+# Soglie e colori definiti in config.py (NDSI_LIGHT_SNOW, NDSI_DENSE_SNOW, NDSI_COLOR_*)
+_lr, _lg, _lb, _la = NDSI_COLOR_LIGHT
+_dr, _dg, _db, _da = NDSI_COLOR_DENSE
+EVALSCRIPT = f"""
 //VERSION=3
-function setup() {
-  return { input: [{ bands: ["B03", "B11", "dataMask"] }], output: { bands: 4, sampleType: "UINT8" } }
-}
-function evaluatePixel(s) {
+function setup() {{
+  return {{ input: [{{ bands: ["B03", "B11", "dataMask"] }}], output: {{ bands: 4, sampleType: "UINT8" }} }}
+}}
+function evaluatePixel(s) {{
   if (!s.dataMask) return [0, 0, 0, 0]
   const ndsi = (s.B03 - s.B11) / (s.B03 + s.B11 + 1e-10)
-  if (ndsi < 0.2) return [0, 0, 0, 0]
-  if (ndsi < 0.4) return [153, 217, 255, 153]   // neve leggera — azzurro 60%
-  return [38, 140, 255, 217]                      // neve densa — blu 85%
-}
+  if (ndsi < {NDSI_LIGHT_SNOW}) return [0, 0, 0, 0]
+  if (ndsi < {NDSI_DENSE_SNOW}) return [{_lr}, {_lg}, {_lb}, {_la}]   // neve leggera
+  return [{_dr}, {_dg}, {_db}, {_da}]                                  // neve densa
+}}
 """
 
 _token: Optional[str] = None
 _token_expiry: float = 0
 _tile_cache: dict[tuple, bytes] = {}
-MAX_CACHE = 500
 
 
 async def _get_token() -> str:
@@ -110,7 +118,7 @@ async def fetch_snow_tile(z: int, x: int, y: int, date: str) -> bytes:
         resp.raise_for_status()
         png = resp.content
 
-    if len(_tile_cache) >= MAX_CACHE:
+    if len(_tile_cache) >= COPERNICUS_MAX_CACHE_TILES:
         del _tile_cache[next(iter(_tile_cache))]
     _tile_cache[cache_key] = png
     return png
