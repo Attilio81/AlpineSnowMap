@@ -4,8 +4,9 @@ import os
 import logging
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
+from config import VALID_PROVINCES
 from services.agno_agent import build_agent
 from services.agno_team import build_team
 
@@ -16,10 +17,25 @@ router = APIRouter(prefix="/api/agent")
 class QueryRequest(BaseModel):
     message: str
 
+    @field_validator("message")
+    @classmethod
+    def message_not_empty(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Il messaggio non può essere vuoto")
+        return v.strip()
+
 
 class RouteRequest(BaseModel):
     geojson: dict
     province: str = "IT-23"
+
+    @field_validator("province")
+    @classmethod
+    def province_valid(cls, v: str) -> str:
+        if v not in VALID_PROVINCES:
+            valid = ", ".join(sorted(VALID_PROVINCES.keys()))
+            raise ValueError(f"Provincia '{v}' non supportata. Valori ammessi: {valid}")
+        return v
 
 
 @router.post("/query")
@@ -68,6 +84,21 @@ async def analyze_route(req: RouteRequest):
 class TeamQueryRequest(BaseModel):
     message: str
     province: str = "IT-23"
+
+    @field_validator("message")
+    @classmethod
+    def message_not_empty(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Il messaggio non può essere vuoto")
+        return v.strip()
+
+    @field_validator("province")
+    @classmethod
+    def province_valid(cls, v: str) -> str:
+        if v not in VALID_PROVINCES:
+            valid = ", ".join(sorted(VALID_PROVINCES.keys()))
+            raise ValueError(f"Provincia '{v}' non supportata. Valori ammessi: {valid}")
+        return v
 
 
 @router.post("/team")

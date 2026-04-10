@@ -8,18 +8,12 @@ from PIL import Image
 from fastapi import APIRouter
 from fastapi.responses import Response
 
+from config import SLOPE_COLORS, SLOPE_TILE_Z_MIN, SLOPE_TILE_Z_MAX
+
 router = APIRouter()
 
 TERRARIUM_URL = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
 EARTH_RADIUS  = 6_378_137.0
-
-# (min_deg, max_deg, R, G, B, A)
-SLOPE_COLORS = [
-    (25, 30,  51, 204,  51, 130),   # verde
-    (30, 35, 255, 204,   0, 165),   # giallo
-    (35, 40, 255, 102,   0, 191),   # arancio
-    (40, 90, 204,   0,   0, 210),   # rosso
-]
 
 
 def _tile_center_lat(z: int, y: int) -> float:
@@ -59,7 +53,7 @@ def _compute(z: int, x: int, y: int) -> bytes | None:
 
 @router.get("/api/slope/{z}/{x}/{y}.png")
 def slope_tile(z: int, x: int, y: int):
-    if z < 7 or z > 14:
+    if z < SLOPE_TILE_Z_MIN or z > SLOPE_TILE_Z_MAX:
         return Response(status_code=204)
     data = _compute(z, x, y)
     if data is None:

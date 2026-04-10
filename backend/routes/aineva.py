@@ -1,14 +1,14 @@
 from fastapi import APIRouter, HTTPException
 import httpx
 from services.aineva_client import fetch_bulletin
+from validators import validate_province
 
 router = APIRouter()
 
 
 @router.get("/api/aineva/{province}")
 async def get_bulletin(province: str):
-    if not province.startswith("IT-"):
-        raise HTTPException(status_code=400, detail="Province must start with IT-")
+    validate_province(province)
     try:
         data = await fetch_bulletin(province)
         if not isinstance(data, dict):
