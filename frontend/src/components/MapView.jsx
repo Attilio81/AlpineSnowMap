@@ -3,19 +3,47 @@ import maplibregl from 'maplibre-gl'
 import { useApp } from '../context/AppContext.jsx'
 import { ZONES } from '../data/zones.js'
 
-const TERRARIUM_SOURCE = {
-  type: 'raster-dem',
-  tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
-  tileSize: 256,
-  encoding: 'terrarium',
-  maxzoom: 14,
+// Terrain DEM: MapTiler terrain-rgb-v2 quando disponibile la key (maxzoom 15, encoding mapbox),
+// altrimenti Terrarium AWS (maxzoom 14, encoding terrarium).
+// Il backend slope usa sempre Terrarium indipendentemente da questa scelta.
+function buildTerrainSource(maptilerKey) {
+  if (maptilerKey) {
+    return {
+      type: 'raster-dem',
+      tiles: [`https://api.maptiler.com/tiles/terrain-rgb-v2/{z}/{x}/{y}.webp?key=${maptilerKey}`],
+      tileSize: 256,
+      encoding: 'mapbox',
+      maxzoom: 15,
+    }
+  }
+  return {
+    type: 'raster-dem',
+    tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+    tileSize: 256,
+    encoding: 'terrarium',
+    maxzoom: 14,
+  }
 }
 
-const SATELLITE_SOURCE = {
-  type: 'raster',
-  tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
-  tileSize: 256,
-  attribution: '© Esri',
+// Satellite: MapTiler satellite-v2 quando disponibile la key (copertura Alps ad alta res),
+// altrimenti Esri World Imagery.
+function buildSatelliteSource(maptilerKey) {
+  if (maptilerKey) {
+    return {
+      type: 'raster',
+      tiles: [`https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=${maptilerKey}`],
+      tileSize: 512,
+      maxzoom: 20,
+      attribution: '© MapTiler © Airbus',
+    }
+  }
+  return {
+    type: 'raster',
+    tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+    tileSize: 256,
+    maxzoom: 19,
+    attribution: '© Esri',
+  }
 }
 
 export default function MapView({ mapRef, onMapReady, onMapDestroy }) {
@@ -64,10 +92,10 @@ export default function MapView({ mapRef, onMapReady, onMapDestroy }) {
       map.on('load', () => {
         if (cancelled) return  // cleanup ran after map created but before load fired
 
-        map.addSource('terrain-dem', TERRARIUM_SOURCE)
+        map.addSource('terrain-dem', buildTerrainSource(MAPTILER_KEY))
         map.setTerrain({ source: 'terrain-dem', exaggeration: 1.4 })
 
-        map.addSource('satellite', SATELLITE_SOURCE)
+        map.addSource('satellite', buildSatelliteSource(MAPTILER_KEY))
         const layers = map.getStyle().layers
 
         baseFillsRef.current = layers
