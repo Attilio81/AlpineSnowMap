@@ -11,6 +11,7 @@ from routes.sentinel_snow import router as snow_router
 from routes.peaks import router as peaks_router
 from routes.slope import router as slope_router
 from routes.agent import router as agent_router
+from routes.blender_export import router as blender_router
 from mcp_server import mcp
 
 logger = logging.getLogger(__name__)
@@ -34,6 +35,7 @@ app.include_router(snow_router)
 app.include_router(peaks_router)
 app.include_router(slope_router)
 app.include_router(agent_router)
+app.include_router(blender_router)
 
 # Mount MCP server — available at /mcp/sse for Claude Desktop and Agno
 app.mount("/mcp", mcp.sse_app())
